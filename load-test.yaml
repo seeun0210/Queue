@@ -1,0 +1,17 @@
+config:
+  target: "http://localhost:3000"
+  phases:
+    - duration: 60
+      arrivalRate: 10
+scenarios:
+  - name: "Kafka Load Test"
+    flow:
+      - get:
+          url: "/kafka/produce"
+          qs:
+            message: "Load test message"
+
+  - name: "Bull Queue Load Test"
+    flow:
+      - get:
+          url: "/queue/add"
