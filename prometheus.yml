@@ -1,7 +1,7 @@
 global:
   scrape_interval: 15s
-
+  evaluation_interval: 10s
 scrape_configs:
   - job_name: 'jmeter'
     static_configs:
-      - targets: ['<JMeter_Exporter_IP>:9270']
+      - targets: ['localhost:9270']

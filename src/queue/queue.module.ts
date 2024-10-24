@@ -16,7 +16,7 @@ import { ExpressAdapter } from '@bull-board/express';
     ]),
     BullModule.forRoot({
       redis: {
-        host: 'localhost',
+        host: '127.0.0.1',
         port: 6379,
       },
     }),

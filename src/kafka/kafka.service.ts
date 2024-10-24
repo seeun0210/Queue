@@ -32,51 +32,52 @@ export class KafkaService implements OnModuleInit, OnModuleDestroy {
   }
 
   async onModuleInit() {
+    const startTime = Date.now();
+    let messageCount = 0;
+
     await this.producer.connect();
     await this.consumer.connect();
     await this.consumer.subscribe({
       topic: 'user-log-processing',
-      fromBeginning: true,
+      fromBeginning: false,
     });
 
-    // 병렬 처리를 위해 Promise.all을 사용
     await this.consumer.run({
-      eachBatch: async ({ batch, resolveOffset, heartbeat }) => {
-        const batchSize = 3;
-        const messageBatches = [];
+      eachMessage: async ({ topic, partition, message }) => {
+        let userLog = await this.userLogModel
+          .findOne({ isProcessed: { $ne: true } })
+          .exec();
 
-        // 배치로 나누기
-        for (let i = 0; i < batch.messages.length; i += batchSize) {
-          messageBatches.push(batch.messages.slice(i, i + batchSize));
+        while (userLog && messageCount < 100) {
+          const processedLog = {
+            userId: userLog.userId,
+            originalAction: userLog.action,
+            processedAction: userLog.action.toUpperCase(),
+            timestamp: userLog.timestamp,
+          };
+
+          await this.processedLogModel.create(processedLog);
+          await this.userLogModel.updateOne(
+            { _id: userLog._id },
+            { $set: { isProcessed: true } },
+          );
+
+          userLog = await this.userLogModel
+            .findOne({ isProcessed: false })
+            .exec();
+
+          messageCount++;
         }
 
-        // 각 배치를 병렬 처리
-        await Promise.all(
-          messageBatches.map(async (messages) => {
-            const values = messages.map((message) => message.value.toString());
-            await this.processMessageBatch(values, batch.partition);
-
-            // 각 메시지의 오프셋을 커밋
-            messages.forEach((message) => resolveOffset(message.offset));
-            await heartbeat();
-          }),
-        );
+        if (messageCount === 100) {
+          const endTime = Date.now();
+          const totalTime = (endTime - startTime) / 1000;
+          console.log(
+            `Total time taken to process 100 messages: ${totalTime} seconds`,
+          );
+        }
       },
     });
-  }
-
-  private async processMessageBatch(messages: string[], partition: number) {
-    console.log(`Processing batch from partition ${partition}: ${messages}`);
-
-    const processedLogs = messages.map((message) => ({
-      userId: message,
-      originalAction: message,
-      processedAction: message.toUpperCase(),
-      timestamp: new Date(),
-    }));
-
-    await this.processedLogModel.insertMany(processedLogs);
-    console.log(`Processed and saved batch of ${processedLogs.length} logs.`);
   }
 
   async produceMessage(message: string) {

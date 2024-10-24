@@ -20,6 +20,7 @@ export class SeedService {
         userId: `user-${i + 1}`,
         action: `action-${i + 1}`,
         timestamp: new Date(),
+        isProcessed: false,
       });
     }
 

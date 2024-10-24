@@ -11,6 +11,9 @@ export class UserLog extends Document {
 
   @Prop()
   timestamp: Date;
+
+  @Prop()
+  isProcessed: boolean;
 }
 
 export const UserLogSchema = SchemaFactory.createForClass(UserLog);
