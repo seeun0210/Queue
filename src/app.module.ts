@@ -11,14 +11,12 @@ import { ProcessedLog, ProcessedLogSchema } from './processed-log.schema';
 @Module({
   imports: [
     ConfigModule.forRoot({
-      isGlobal: true, // ConfigModule을 글로벌로 설정하여 모든 모듈에서 접근 가능
+      isGlobal: true,
     }),
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => ({
-        uri:
-          // configService.get<string>('MONGODB_URI') ||
-          'mongodb://localhost:27017/test',
+      useFactory: () => ({
+        uri: 'mongodb://localhost:27017/test',
       }),
       inject: [ConfigService],
     }),

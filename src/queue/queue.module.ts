@@ -24,8 +24,8 @@ import { ExpressAdapter } from '@bull-board/express';
       name: 'user-log-queue',
     }),
     BullBoardModule.forRoot({
-      route: '/admin/queues', // Bull Board 대시보드 경로
-      adapter: ExpressAdapter, // Express 어댑터 사용
+      route: '/admin/queues',
+      adapter: ExpressAdapter,
     }),
   ],
   controllers: [QueueController],
